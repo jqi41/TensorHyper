@@ -39,6 +39,26 @@ This classical–quantum decoupling results in:
 
 ---
 
+## 🧠 Core Idea 
+
+For a VQC with U qubits and L layers, 
+
+A conventional VQC directly optimizes: 
+
+w ∈ R^(3UL) 
+
+TensorHyper-VQC instead parameterizes: 
+
+w = TT(z; {G_k})
+
+Where:
+
+- z ~ N(0, I)
+- {G_k} are TT cores
+- Optimization is performed only over TT cores
+- Quantum circuit performs inference only
+
+---
 
 Our codes include TensorHyper-VQC experiments for Quantum Dot Classification, Max-Cut Maximization, and LiH Molecular Simulation. 
 
