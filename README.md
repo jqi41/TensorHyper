@@ -167,10 +167,10 @@ If you use this repository, please cite:
 
 ```
 @article{Qi2025TensorHyperVQC,
-  title={TensorHyper-VQC: a tensor-train-guided hypernetwork for robust and scalable variational quantum computing},
+  title={{TensorHyper-VQC: A Tensor-Train-guided Hypernetwork for Robust and Scalable Variational Quantum Computing}},
   author={Qi, Jun and Yang, Chao-Han Huck and Chen, Pin-Yu and Hsieh, Min-Hsiu},
   journal={npj Quantum Information},
-  year={2025},
+  year={2026},
   doi={10.1038/s41534-025-01157-z}
 }
 ```
