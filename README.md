@@ -106,27 +106,28 @@ Hardware error:
 
 ---
 
+## 🗂 Repository Structure
+
+TensorHyper/
+│
+├── TensorHyper_QD.py # Quantum Dot Classification
+├── TensoMeta_QAOA.py # Max-Cut Optimization
+├── TensoMeta_QSIM.py # LiH Molecular Simulation
+└── README.md
+
 ---
 
+## ⚙ Installation
 
----
+### Requirements
 
-Our codes include TensorHyper-VQC experiments for Quantum Dot Classification, Max-Cut Maximization, and LiH Molecular Simulation. 
+- Python ≥ 3.9
+- PyTorch
+- Qiskit
+- NumPy
+- SciPy
 
-#### Installation
+Install dependencies:
 
-The main dependencies include *pytorch*
-
-#### 0. Downloading the dataset 
-```
-git clone https://gitlab.com/QMAI/mlqe_2023_edx.git
-```
-
-#### 1. Simulating experiments of Quantum Dot Classification 
-python TensorHyper_QD.py 
-
-#### 2. Simulating experiments of Max-Cut Optimization
-python TensorHyper_QAOA.py
-
-#### 3. Simulating experiments of LiH Molecular Simulation
-python TensorHyper_QSIM.py
+```bash
+pip install torch qiskit numpy scipy
