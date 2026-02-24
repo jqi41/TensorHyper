@@ -15,7 +15,10 @@ DOI: https://doi.org/10.1038/s41534-025-01157-z
 - Poor scalability with increasing qubits and circuit depth
 
 ** Framework Overview
-![TensorHyper-VQC Framework](image/tt2vqc.pdf)
+
+<p align="center">
+  <img src="image/tt2vqc.pdf" width="750">
+</p>
 
 Instead of directly optimizing quantum gate parameters on hardware, TensorHyper-VQC delegates parameter generation to a classical Tensor-Train (TT) network.
 
