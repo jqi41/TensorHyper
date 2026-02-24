@@ -59,7 +59,7 @@ TensorHyper-VQC instead parameterizes:   $\textbf{w} = \text{TT}(\textbf{z}; \ma
 | ---------------------- | ------------ | -------------------------------------- |
 | Gradient domain        | Quantum      |     Classical                          |
 | Barren plateau         | Severe       |     Mitigated                          |
-| Noise scaling          | O(1)         |     $\mathcal{O}(\frac{1}{UL})$        |
+| Noise scaling          | O(1)         |$\mathcal{O}\left(\frac{1}{UL}\right)$  |
 | Parameter efficiency   | Low          |     High                               |
 | Hardware robustness    | Limited      |     Strong                             |
 | Theoretical guarantees | Limited      | NTK + Generalization + Variance bounds |
