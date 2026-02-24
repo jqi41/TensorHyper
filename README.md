@@ -33,7 +33,7 @@ The quantum circuit acts only as a forward-pass evaluator, while all gradient up
 This classical–quantum decoupling results in:
 
 -  Improved trainability (NTK enhancement)
--  O(1 / (UL)) gradient variance reduction
+-  $\mathcal{O}(\frac{1}{UL})$ gradient variance reduction
 -  Stronger generalization control via low-rank structure
 -  Hardware-level robustness without explicit mitigation
 
@@ -43,12 +43,12 @@ This classical–quantum decoupling results in:
 
 For U qubits and L layers, TensorHyper-VQC instead parameterizes: 
 
-$w = TT(z; {G_k})$
+$\textbf{w} = \text{TT}(\textbf{z}; {G_k}_{k=1}^{K})$
 
 Where:
 
-- z ~ N(0, I)
-- {G_k} are TT cores
+- $\textbf{z} \sim \mathcal{N}(0, I)$
+- ${G_k}_{k=1}^{K}$ are TT-cores
 - Optimization is performed only over TT cores
 - Quantum circuit performs inference only
 
