@@ -45,10 +45,7 @@ For a VQC with $U$ qubits and $L$ layers,
 
 A conventional VQC directly optimizes:   $\textbf{w} \in \mathbb{R}^{3UL}$
 
-TensorHyper-VQC instead parameterizes:   $\textbf{w} = \text{TT}(\textbf{z}; \mathcal{G}_1, ..., \mathcal{G}_K)$
-
-Where:
-
+TensorHyper-VQC instead parameterizes:   $\textbf{w} = \text{TT}(\textbf{z}; \mathcal{G}_1, ..., \mathcal{G}_K)$, where:
 - $\textbf{z} \sim \mathcal{N}(0, I)$
 - $\mathcal{G}_1, ..., \mathcal{G}_K$ are TT-cores
 - Optimization is performed only over TT-cores
