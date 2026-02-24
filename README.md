@@ -32,10 +32,10 @@ The quantum circuit acts only as a forward-pass evaluator, while all gradient up
 
 This classical–quantum decoupling results in:
 
--  Improved trainability (NTK enhancement)
--  $\mathcal{O}\left(\frac{1}{UL}\right)$ gradient variance reduction
--  Stronger generalization control via low-rank structure
--  Hardware-level robustness without explicit mitigation
+- ✔ Improved trainability (NTK enhancement)
+- ✔ $\mathcal{O}\left(\frac{1}{UL}\right)$ gradient variance reduction
+- ✔ Stronger generalization control via low-rank structure
+- ✔ Hardware-level robustness without explicit mitigation
 
 ---
 
@@ -65,6 +65,10 @@ TT approximation error decreases polynomially with TT-rank:
 $ε_{\text{tt}}(r) = \mathcal{O}\left(\frac{1}{r^{(p−1)}}\right)$
 
 Provides explicit rank–expressivity trade-off.
+
+### 2️⃣ Neural Tangent Kernel (NTK) Analysis
+
+Minimum NTK eigenvalue satisfies: 
 
 ---
 
