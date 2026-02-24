@@ -161,3 +161,20 @@ python TensoMeta_QSIM.py
 ```
 
 --- 
+
+## 🌍 Broader Impact 
+
+TensorHyper-VQC establishes a new paradigm: 
+
+Classical tensor networks as hypernetwork generators for quantum circuits. 
+
+This enables scalable hybrid quantum-classical learning for: 
+
+- Quantum chemistry
+- Combinatorial optimization
+- Quantum machine learning
+- NISQ-era deployable algorithms 
+
+---
+
+
