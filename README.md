@@ -109,10 +109,15 @@ Hardware error:
 ## 🗂 Repository Structure
 
 TensorHyper/
+
 │
+
 ├── TensorHyper_QD.py # Quantum Dot Classification
+
 ├── TensoMeta_QAOA.py # Max-Cut Optimization
+
 ├── TensoMeta_QSIM.py # LiH Molecular Simulation
+
 └── README.md
 
 ---
