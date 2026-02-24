@@ -62,7 +62,9 @@ TensorHyper-VQC is supported by rigorous theoretical analysis:
 
 TT approximation error decreases polynomially with TT-rank: 
 
-$ε_{\text{tt}}(r) = \mathcal{O}(1 / r^{(p−1)})$
+$ε_{\text{tt}}(r) = \mathcal{O}\left(\frac{1}{r^{(p−1)}}\right)$
+
+Provides explicit rank–expressivity trade-off.
 
 ---
 
