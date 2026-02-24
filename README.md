@@ -105,21 +105,6 @@ Hardware error:
 +0.026752 Ha (vs +0.052247 Ha for VQE+ZNE+REM)
 
 ---
-
-## 🗂 Repository Structure
-
-TensorHyper/
-
-│
-
-├── TensorHyper_QD.py # Quantum Dot Classification
-
-├── TensoMeta_QAOA.py # Max-Cut Optimization
-
-├── TensoMeta_QSIM.py # LiH Molecular Simulation
-
-└── README.md
-
 ---
 
 ## ⚙ Installation
@@ -177,4 +162,15 @@ This enables scalable hybrid quantum-classical learning for:
 
 ---
 
+## 📖 Citation 
+
+If you use this repository, please cite: 
+
+@article{Qi2025TensorHyperVQC,
+  title={TensorHyper-VQC: a tensor-train-guided hypernetwork for robust and scalable variational quantum computing},
+  author={Qi, Jun and Yang, Chao-Han Huck and Chen, Pin-Yu and Hsieh, Min-Hsiu},
+  journal={npj Quantum Information},
+  year={2025},
+  doi={10.1038/s41534-025-01157-z}
+}
 
