@@ -132,3 +132,32 @@ Install dependencies:
 
 ```bash
 pip install torchquantum
+```
+
+---
+
+## 📦 Dataset (Quantum Dot)
+```bash
+git clone https://gitlab.com/QMAI/mlqe_2023_edx.git
+```
+
+---
+
+## ▶ Running Experiments 
+
+### 1️⃣ Quantum Dot Classification 
+```bash
+python TensorHyper_QD.py
+```
+
+### 2️⃣ Max-Cut Optimization
+```bash
+python TensoMeta_QAOA.py 
+```
+
+### 3️⃣ LiH Molecular Simulation 
+```bash
+python TensoMeta_QSIM.py 
+```
+
+--- 
