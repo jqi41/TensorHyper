@@ -51,36 +51,21 @@ TensorHyper-VQC instead parameterizes:   $\textbf{w} = \text{TT}(\textbf{z}; \ma
 - Optimization is performed only over TT-cores
 - Quantum circuit performs inference only
 
-### 📊 Comparison with Standard VQC 
+---
+
+## 📊 Comparison with Standard VQC 
 
 | Feature                | Standard VQC | TensorHyper-VQC                        |
 | ---------------------- | ------------ | -------------------------------------- |
-| Gradient domain        | Quantum      | Classical                              |
-| Barren plateau         | Severe       | Mitigated                              |
-| Noise scaling          | O(1)         | O(1/UL)                                |
-| Parameter efficiency   | Low          | High                                   |
-| Hardware robustness    | Limited      | Strong                                 |
+| Gradient domain        | Quantum      |     Classical                          |
+| Barren plateau         | Severe       |     Mitigated                          |
+| Noise scaling          | O(1)         |     $\mathcal{O}(\frac{1}{UL})$        |
+| Parameter efficiency   | Low          |     High                               |
+| Hardware robustness    | Limited      |     Strong                             |
 | Theoretical guarantees | Limited      | NTK + Generalization + Variance bounds |
 
 ---
 
-## 📐 Theoretical Guarantees
-
-TensorHyper-VQC is supported by rigorous theoretical analysis: 
-
-### 1️⃣ Approximation Capability 
-
-TT approximation error decreases polynomially with TT-rank: 
-
-$ε_{\text{tt}}(r) = \mathcal{O}\left(\frac{1}{r^{(p−1)}}\right)$
-
-Provides explicit rank–expressivity trade-off.
-
-### 2️⃣ Neural Tangent Kernel (NTK) Analysis
-
-Minimum NTK eigenvalue satisfies: 
-
----
 
 Our codes include TensorHyper-VQC experiments for Quantum Dot Classification, Max-Cut Maximization, and LiH Molecular Simulation. 
 
