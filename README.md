@@ -70,8 +70,6 @@ TensorHyper-VQC instead parameterizes:   $\textbf{w} = \text{TT}(\textbf{z}; \ma
 
 TensorHyper-VQC is validated across three major tasks:
 
----
-
 ### 1️⃣ Quantum Dot Classification (20 qubits, depth 6)
 
 - 99.5% accuracy (noise-free)
@@ -84,6 +82,29 @@ TensorHyper-VQC is validated across three major tasks:
 - 4–6× fewer parameters than ResNet-LoRA baselines
 
 ✔ Real-device validation on IBM 156-qubit Heron processor, with a final hardware accuracy: 83.0%
+
+### 2️⃣ Max-Cut Optimization (QAOA, 20-qubit graphs)
+
+Average improvement over classical QAOA:
+
+- +16% (noise-free)
+- +17% (real hardware)
+
+Outperforms QAOA enhanced with ZNE and REM.
+
+### 3️⃣ Molecular Quantum Simulation (LiH Hamiltonian)
+
+- 4-qubit reduced LiH model
+- 2.7× fewer parameters than conventional VQE
+- Near chemical accuracy
+
+Noise-free error:
++0.000285 Ha (vs +0.003459 Ha for VQE)
+
+Hardware error:
++0.026752 Ha (vs +0.052247 Ha for VQE+ZNE+REM)
+
+---
 
 ---
 
