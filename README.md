@@ -6,7 +6,7 @@ DOI: https://doi.org/10.1038/s41534-025-01157-z
 
 ---
 
-## Overview 
+## 🚀 Overview 
 
 **TensorHyper-VQC** is a tensor-train (TT) guided hypernetwork framework designed to overcome two fundamental challenges in Variational Quantum Computing (VQC):
 
