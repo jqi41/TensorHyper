@@ -130,7 +130,13 @@ TensorHyper/
 
 Install dependencies:
 
+git clone https://gitlab.com/QMAI/mlqe_2023_edx.git
+
 '''bash
 git clone https://github.com/mit-han-lab/torchquantum.git
+
+'''bash
 cd torchquantum
+
+'''bash
 pip install --editable .
