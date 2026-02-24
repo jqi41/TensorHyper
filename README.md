@@ -43,8 +43,10 @@ This classical–quantum decoupling results in:
 
 For a VQC with $U$ qubits and $L$ layers,
 
-- A conventional VQC directly optimizes: $\textbf{w} \in \mathbb{R}^{3UL}$
-- TensorHyper-VQC instead parameterizes: $\textbf{w} = \text{TT}(\textbf{z}; \mathcal{G}_1, ..., \mathcal{G}_K)$
+- A conventional VQC directly optimizes:
+  -- $\textbf{w} \in \mathbb{R}^{3UL}$
+- TensorHyper-VQC instead parameterizes:
+  -- $\textbf{w} = \text{TT}(\textbf{z}; \mathcal{G}_1, ..., \mathcal{G}_K)$
 
 Where:
 
