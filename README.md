@@ -30,7 +30,7 @@ This classical–quantum decoupling results in:
 ## 🧠 Framework Architecture
 
 <p align="center">
-  <img src="image/tt2vqc.pdf" width="750">
+  <img src="image/framework.png" width="750">
 </p>
 
 <p align="center">
