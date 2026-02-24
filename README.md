@@ -14,8 +14,10 @@ DOI: https://doi.org/10.1038/s41534-025-01157-z
 - Sensitivity to quantum noise
 - Poor scalability with increasing qubits and circuit depth
 
-Instead of directly optimizing quantum gate parameters on hardware,  
-TensorHyper-VQC delegates parameter generation to a classical Tensor-Train (TT) network.
+** Framework Overview
+![TensorHyper-VQC Framework](image/tt2vqc.pdf)
+
+Instead of directly optimizing quantum gate parameters on hardware, TensorHyper-VQC delegates parameter generation to a classical Tensor-Train (TT) network.
 
 The quantum circuit acts only as a forward-pass evaluator, while all gradient updates occur in the classical domain.
 
