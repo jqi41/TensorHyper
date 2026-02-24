@@ -51,6 +51,17 @@ TensorHyper-VQC instead parameterizes:   $\textbf{w} = \text{TT}(\textbf{z}; \ma
 - Optimization is performed only over TT-cores
 - Quantum circuit performs inference only
 
+### 📊 Comparison with Standard VQC 
+
+| Feature                | Standard VQC | TensorHyper-VQC                        |
+| ---------------------- | ------------ | -------------------------------------- |
+| Gradient domain        | Quantum      | Classical                              |
+| Barren plateau         | Severe       | Mitigated                              |
+| Noise scaling          | O(1)         | O(1/UL)                                |
+| Parameter efficiency   | Low          | High                                   |
+| Hardware robustness    | Limited      | Strong                                 |
+| Theoretical guarantees | Limited      | NTK + Generalization + Variance bounds |
+
 ---
 
 ## 📐 Theoretical Guarantees
