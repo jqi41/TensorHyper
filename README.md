@@ -54,6 +54,18 @@ Where:
 
 ---
 
+## 📐 Theoretical Guarantees
+
+TensorHyper-VQC is supported by rigorous theoretical analysis: 
+
+### 1️⃣ Approximation Capability 
+
+TT approximation error decreases polynomially with TT-rank: 
+
+$ε_{\text{tt}}(r) = \mathcal{O}(1 / r^{(p−1)})$
+
+---
+
 Our codes include TensorHyper-VQC experiments for Quantum Dot Classification, Max-Cut Maximization, and LiH Molecular Simulation. 
 
 #### Installation
