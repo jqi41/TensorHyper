@@ -83,8 +83,7 @@ TensorHyper-VQC is validated across three major tasks:
   - ZNE + REM enhanced VQC
 - 4–6× fewer parameters than ResNet-LoRA baselines
 
-✔ Real-device validation on IBM 156-qubit Heron processor  
-Final hardware accuracy: 83.0%
+✔ Real-device validation on IBM 156-qubit Heron processor, with a final hardware accuracy: 83.0%
 
 ---
 
