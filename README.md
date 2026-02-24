@@ -43,7 +43,7 @@ This classical–quantum decoupling results in:
 
 For U qubits and L layers, TensorHyper-VQC instead parameterizes: 
 
-$\textbf{w} = \text{TT}(\textbf{z}; \text{\{}G_k\text{\}}_{k=1}^{K})$
+$\textbf{w} = \text{TT}(\textbf{z};$ {$G_k$}$_{k=1}^{K})$
 
 Where:
 
