@@ -51,7 +51,9 @@ TensorHyper-VQC instead parameterizes:   $\textbf{w} = \text{TT}(\textbf{z}; \ma
 - Optimization is performed only over TT-cores
 - Quantum circuit performs inference only
 
-Comparison with Standard VQC 
+---
+
+## 📊 Comparison with Standard VQC 
 
 | Feature                | Standard VQC | TensorHyper-VQC                        |
 | ---------------------- | ------------ | -------------------------------------- |
@@ -64,6 +66,30 @@ Comparison with Standard VQC
 
 ---
 
+## 🔬 Applications Demonstrated 
+
+TensorHyper-VQC is validated across three major tasks:
+
+---
+
+### 1️⃣ Quantum Dot Classification (20 qubits, depth 6)
+
+- 99.5% accuracy (noise-free)
+- 94.0% under composite NISQ noise
+- Outperforms:
+  - Standard VQC
+  - TTN+VQC
+  - MLPHyper-VQC
+  - ZNE + REM enhanced VQC
+- 4–6× fewer parameters than ResNet-LoRA baselines
+
+✔ Real-device validation on IBM 156-qubit Heron processor  
+Final hardware accuracy: 83.0%
+
+---
+
+
+---
 
 Our codes include TensorHyper-VQC experiments for Quantum Dot Classification, Max-Cut Maximization, and LiH Molecular Simulation. 
 
