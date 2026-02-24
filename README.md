@@ -1,5 +1,32 @@
-# TensorHyper
-TensorHyper-VQC: A Tensor-Train Guided Hypernetwork for Robust and Scalable Variational Quantum Computing
+# TensorHyper-VQC 
+### A Tensor-Train-Guided Hypernetwork for Robust and Scalable Variational Quantum Computing
+
+**Published in npj Quantum Information (2026)** 
+DOI: https://doi.org/10.1038/s41534-025-01157-z  
+
+---
+
+## Overview 
+
+**TensorHyper-VQC** is a tensor-train (TT) guided hypernetwork framework designed to overcome two fundamental challenges in Variational Quantum Computing (VQC):
+
+- Barren plateaus (vanishing gradients)
+- Sensitivity to quantum noise
+- Poor scalability with increasing qubits and circuit depth
+
+Instead of directly optimizing quantum gate parameters on hardware,  
+TensorHyper-VQC delegates parameter generation to a classical Tensor-Train (TT) network.
+
+The quantum circuit acts only as a forward-pass evaluator, while all gradient updates occur in the classical domain.
+
+This classical–quantum decoupling results in:
+
+-  Improved trainability (NTK enhancement)
+-  O(1 / (UL)) gradient variance reduction
+-  Stronger generalization control via low-rank structure
+-  Hardware-level robustness without explicit mitigation
+
+---
 
 Our codes include TensorHyper-VQC experiments for Quantum Dot Classification, Max-Cut Maximization, and LiH Molecular Simulation. 
 
