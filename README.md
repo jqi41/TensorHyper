@@ -14,12 +14,6 @@ DOI: https://doi.org/10.1038/s41534-025-01157-z
 - Sensitivity to quantum noise
 - Poor scalability with increasing qubits and circuit depth
 
-** Framework Overview
-
-<p align="center">
-  <img src="image/tt2vqc.pdf" width="750">
-</p>
-
 Instead of directly optimizing quantum gate parameters on hardware, TensorHyper-VQC delegates parameter generation to a classical Tensor-Train (TT) network.
 
 The quantum circuit acts only as a forward-pass evaluator, while all gradient updates occur in the classical domain.
@@ -32,6 +26,17 @@ This classical–quantum decoupling results in:
 -  Hardware-level robustness without explicit mitigation
 
 ---
+
+## 🧠 Framework Architecture
+
+<p align="center">
+  <img src="image/tt2vqc.pdf" width="750">
+</p>
+
+<p align="center">
+  <em>Figure 1: TensorHyper-VQC architecture. A classical TT network generates variational parameters injected into a fixed quantum circuit. Gradients are backpropagated only through TT-cores, mitigating barren plateaus and enhancing noise robustness.</em>
+</p>
+
 
 Our codes include TensorHyper-VQC experiments for Quantum Dot Classification, Max-Cut Maximization, and LiH Molecular Simulation. 
 
