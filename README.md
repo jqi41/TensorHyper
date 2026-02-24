@@ -126,13 +126,11 @@ TensorHyper/
 
 ### Requirements
 
-- Python ≥ 3.9
-- PyTorch
-- Qiskit
-- NumPy
-- SciPy
+- Torch Quantum
 
 Install dependencies:
 
-```bash
-pip install torch qiskit numpy scipy
+'''bash
+git clone https://github.com/mit-han-lab/torchquantum.git
+cd torchquantum
+pip install --editable .
