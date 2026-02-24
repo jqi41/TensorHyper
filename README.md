@@ -6,6 +6,18 @@ DOI: https://doi.org/10.1038/s41534-025-01157-z
 
 ---
 
+## 🧠 Framework Architecture
+
+<p align="center">
+  <img src="image/framework.png" width="750">
+</p>
+
+<p align="center">
+  <em>Figure 1: TensorHyper-VQC architecture. A classical TT network generates variational parameters injected into a fixed quantum circuit. Gradients are backpropagated only through TT-cores, mitigating barren plateaus and enhancing noise robustness.</em>
+</p>
+
+---
+
 ## 🚀 Overview 
 
 **TensorHyper-VQC** is a tensor-train (TT) guided hypernetwork framework designed to overcome two fundamental challenges in Variational Quantum Computing (VQC):
@@ -26,16 +38,6 @@ This classical–quantum decoupling results in:
 -  Hardware-level robustness without explicit mitigation
 
 ---
-
-## 🧠 Framework Architecture
-
-<p align="center">
-  <img src="image/framework.png" width="750">
-</p>
-
-<p align="center">
-  <em>Figure 1: TensorHyper-VQC architecture. A classical TT network generates variational parameters injected into a fixed quantum circuit. Gradients are backpropagated only through TT-cores, mitigating barren plateaus and enhancing noise robustness.</em>
-</p>
 
 
 Our codes include TensorHyper-VQC experiments for Quantum Dot Classification, Max-Cut Maximization, and LiH Molecular Simulation. 
