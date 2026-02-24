@@ -51,9 +51,7 @@ TensorHyper-VQC instead parameterizes:   $\textbf{w} = \text{TT}(\textbf{z}; \ma
 - Optimization is performed only over TT-cores
 - Quantum circuit performs inference only
 
----
-
-## 📊 Comparison with Standard VQC 
+Comparison with Standard VQC 
 
 | Feature                | Standard VQC | TensorHyper-VQC                        |
 | ---------------------- | ------------ | -------------------------------------- |
