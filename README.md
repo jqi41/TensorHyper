@@ -105,7 +105,6 @@ Hardware error:
 +0.026752 Ha (vs +0.052247 Ha for VQE+ZNE+REM)
 
 ---
----
 
 ## ⚙ Installation
 
@@ -166,6 +165,7 @@ This enables scalable hybrid quantum-classical learning for:
 
 If you use this repository, please cite: 
 
+```
 @article{Qi2025TensorHyperVQC,
   title={TensorHyper-VQC: a tensor-train-guided hypernetwork for robust and scalable variational quantum computing},
   author={Qi, Jun and Yang, Chao-Han Huck and Chen, Pin-Yu and Hsieh, Min-Hsiu},
@@ -173,4 +173,5 @@ If you use this repository, please cite:
   year={2025},
   doi={10.1038/s41534-025-01157-z}
 }
+```
 
