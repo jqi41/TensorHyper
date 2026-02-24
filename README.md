@@ -1,7 +1,7 @@
 # TensorHyper-VQC 
 ### A Tensor-Train-Guided Hypernetwork for Robust and Scalable Variational Quantum Computing
 
-**Published in npj Quantum Information (2026)** 
+📄 **Published in npj Quantum Information (2026)** 
 DOI: https://doi.org/10.1038/s41534-025-01157-z  
 
 ---
