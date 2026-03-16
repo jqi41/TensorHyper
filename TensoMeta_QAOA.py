@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-MetaTT-QAOA vs Classical proxy on MaxCut with multi-channel noise.
+TensorHyper-QAOA vs Classical proxy on MaxCut with multi-channel noise.
 Adds Zero-Noise Extrapolation (ZNE) via gate folding and Readout Error Mitigation (REM).
 
 Noise channels:
@@ -431,7 +431,7 @@ def train_metatt_on_graph(
         optimizer.step()
 
         if verbose and (epoch % max(1, (epochs // 5)) == 0):
-            print(f"  [MetaTT] Epoch {epoch:03d}  ⟨H_C⟩={exp_hc.item():.4f}")
+            print(f"  [TensorHyper] Epoch {epoch:03d}  ⟨H_C⟩={exp_hc.item():.4f}")
 
     with torch.no_grad():
         gamma, beta = model(feat)
@@ -481,7 +481,7 @@ def compare_across_graphs(
 
     print("\n==== Final Averages over all graphs ====")
     print(f"  Avg Classical QAOA (proxy)  ≈ {float(np.mean(classical_results)):.4f}")
-    print(f"  Avg MetaTT-QAOA ⟨H_C⟩       ≈ {float(np.mean(metatt_results)):.4f}")
+    print(f"  Avg TensorHyper-QAOA ⟨H_C⟩       ≈ {float(np.mean(metatt_results)):.4f}")
 
 
 # ==========
