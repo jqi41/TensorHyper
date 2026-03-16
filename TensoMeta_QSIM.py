@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 """
-Improved TensorHyper-VQC / MetaTT-VQE for LiH
+Improved TensorHyper-VQC for LiH
 =============================================
 
 Key improvements over the previous version:
