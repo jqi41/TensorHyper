@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-MetaTT-VQC for Quantum-Dot Classification (with composable quantum noise)
+TensorHyper-VQC for Quantum-Dot Classification (with composable quantum noise)
   – TensorTrainLayer for parameter generation
   – VQC, MPS_VQC, TTN_VQC consuming generated angles
   – Meta-wrappers: VQCParamVQC, MPSParamVQC, TTNParamVQC w/ residual global angles for ring-VQC
