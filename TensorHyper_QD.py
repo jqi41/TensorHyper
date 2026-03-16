@@ -1,12 +1,19 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-MetaTT-VQC for Quantum-Dot Classification
+MetaTT-VQC for Quantum-Dot Classification (with composable quantum noise)
   – TensorTrainLayer for parameter generation
   – VQC, MPS_VQC, TTN_VQC consuming generated angles
   – Meta-wrappers: VQCParamVQC, MPSParamVQC, TTNParamVQC w/ residual global angles for ring-VQC
   – DataLoader over 50×50 noisy diagrams
   – Adam + LR scheduler
+
+NEW:
+  * Composable noise models: depol, dephase, pauli(px,py,pz), overrot (coherent jitter),
+    twopauli (post-CNOT Pauli), readout
+  * CLI flags to mix noise types and set parameters
+  * Readout error applied after measurement; angle jitter applied to rotation params
+
 Requires: torch, torchquantum, numpy
 """
 
@@ -19,12 +26,37 @@ import torch.optim as optim
 import torchquantum as tq
 import torchquantum.functional as tqf
 from torch.utils.data import TensorDataset, DataLoader
-
+from typing import List
 
 # reproducibility
 seed = 1234
 torch.manual_seed(seed)
 np.random.seed(seed)
+
+##################################
+# Helper utils
+##################################
+def parse_int_list(x: str) -> List[int]:
+    x = str(x).strip()
+    if x.startswith('[') and x.endswith(']'):
+        x = x[1:-1]
+    if not x:
+        return []
+    return [int(t.strip()) for t in x.split(',') if t.strip()]
+
+def build_noise_cfg(args):
+    models = [m.strip().lower() for m in str(args.noise_models).split(',') if m.strip()]
+    cfg = dict(
+        depol=args.p_depol if 'depol' in models else 0.0,
+        dephase=args.p_dephase if 'dephase' in models else 0.0,
+        pauli_px=args.pauli_px if 'pauli' in models else 0.0,
+        pauli_py=args.pauli_py if 'pauli' in models else 0.0,
+        pauli_pz=args.pauli_pz if 'pauli' in models else 0.0,
+        overrot_sigma=args.overrot_sigma if 'overrot' in models else 0.0,
+        p_twopauli=args.p_twopauli if 'twopauli' in models else 0.0,
+        p_readout=args.p_readout if 'readout' in models else 0.0,
+    )
+    return cfg, models
 
 ##################################
 # TensorTrainLayer Definition
@@ -59,11 +91,10 @@ class TensorTrainLayer(nn.Module):
         outp = batch + ''.join(oL)
         eins = inp + ',' + ','.join(cores) + '->' + outp
         out = torch.einsum(eins, x_rs, *self.tt_cores)
-        
         return out.reshape(bsz, -1) + self.bias
-    
+
 ##################################
-# Base VQC Definition (ring entangler)
+# Base VQC Definition (ring entangler) + NOISE
 ##################################
 class VQC(tq.QuantumModule):
     def __init__(self, n_wires=12, n_qlayers=2,
@@ -71,7 +102,9 @@ class VQC(tq.QuantumModule):
                  out_features=2, noise_prob=0.01):
         super().__init__()
         self.n_wires, self.n_qlayers = n_wires, n_qlayers
-        self.noise_prob, self.add_fc = noise_prob, add_fc
+        self.noise_prob, self.add_fc = noise_prob, add_fc  # legacy single-prob (depol)
+        self.noise_cfg = dict()  # set at runtime
+
         # global angles (L, W, 3)
         self.angles = nn.Parameter(torch.randn(n_qlayers,n_wires,3)*0.1)
 
@@ -84,22 +117,65 @@ class VQC(tq.QuantumModule):
         self.measure = tq.MeasureAll(tq.PauliZ)
         if add_fc:
             self.fc = nn.Linear(n_wires, out_features)
-         
-            
+
     def reset_quantum_device(self, bsz):
         self.q_device.reset_states(bsz)
 
-    def depolarize(self):
+    # ---------- Noise primitives ----------
+    def _apply_single_qubit_depolarizing(self, p):
+        if p <= 0: return
         for i in range(self.n_wires):
-            if torch.rand((),device=self.q_device.device)<self.noise_prob:
+            if torch.rand((),device=self.q_device.device) < p:
                 err=torch.randint(0, 3, (), device=self.q_device.device).item()
                 op = tqf.x if err==0 else (tqf.y if err==1 else tqf.z)
                 op(self.q_device,wires=i,static=self.static_mode,parent_graph=self.graph)
 
-    def entangle_ring(self):
+    def _apply_single_qubit_dephasing(self, p):
+        if p <= 0: return
+        for i in range(self.n_wires):
+            if torch.rand((),device=self.q_device.device) < p:
+                tqf.z(self.q_device,wires=i,static=self.static_mode,parent_graph=self.graph)
+
+    def _apply_single_qubit_pauli(self, px, py, pz):
+        if (px+py+pz) <= 0: return
+        for i in range(self.n_wires):
+            r = torch.rand((), device=self.q_device.device)
+            if r < px:
+                tqf.x(self.q_device, wires=i, static=self.static_mode, parent_graph=self.graph)
+            elif r < px + py:
+                tqf.y(self.q_device, wires=i, static=self.static_mode, parent_graph=self.graph)
+            elif r < px + py + pz:
+                tqf.z(self.q_device, wires=i, static=self.static_mode, parent_graph=self.graph)
+
+    def _apply_two_qubit_pauli_after_cnot(self, wires, p):
+        if p <= 0: return
+        if torch.rand((), device=self.q_device.device) < p:
+            ops = [tqf.i, tqf.x, tqf.y, tqf.z]
+            a = torch.randint(0,4,(),device=self.q_device.device).item()
+            b = torch.randint(0,4,(),device=self.q_device.device).item()
+            ops[a](self.q_device, wires=wires[0], static=self.static_mode, parent_graph=self.graph)
+            ops[b](self.q_device, wires=wires[1], static=self.static_mode, parent_graph=self.graph)
+
+    def _apply_readout_error(self, out_tensor, p):
+        if p <= 0: return out_tensor
+        mask = (torch.rand_like(out_tensor) < p).float()
+        return out_tensor * (1.0 - 2.0 * mask)
+
+    def _inject_single_qubit_noise(self, cfg):
+        self._apply_single_qubit_depolarizing(float(cfg.get('depol', 0.0)))
+        self._apply_single_qubit_dephasing(float(cfg.get('dephase', 0.0)))
+        self._apply_single_qubit_pauli(
+            float(cfg.get('pauli_px', 0.0)),
+            float(cfg.get('pauli_py', 0.0)),
+            float(cfg.get('pauli_pz', 0.0)),
+        )
+
+    def _entangle_ring_with_noise(self, twoq_p):
         for i in range(self.n_wires-1):
             tqf.cnot(self.q_device,wires=[i,i+1],static=self.static_mode,parent_graph=self.graph)
+            self._apply_two_qubit_pauli_after_cnot([i,i+1], twoq_p)
         tqf.cnot(self.q_device,wires=[self.n_wires-1,0],static=self.static_mode,parent_graph=self.graph)
+        self._apply_two_qubit_pauli_after_cnot([self.n_wires-1,0], twoq_p)
 
     @tq.static_support
     def forward(self, x, q_device, angles=None):
@@ -107,24 +183,46 @@ class VQC(tq.QuantumModule):
         bsz = x.size(0)
         self.reset_quantum_device(bsz)
         self.encoder(self.q_device, x)
+
         use_batch = angles is not None
+        overrot_sigma = float(self.noise_cfg.get('overrot_sigma', 0.0))
+        twoq_p = float(self.noise_cfg.get('p_twopauli', 0.0))
+
         for k in range(self.n_qlayers):
             for w in range(self.n_wires):
                 if use_batch:
                     r,y,z = angles[:,k,w,0], angles[:,k,w,1], angles[:,k,w,2]
                 else:
                     r,y,z = self.angles[k,w]
+
+                # coherent over-rotation (Gaussian jitter)
+                if overrot_sigma > 0:
+                    if isinstance(r, torch.Tensor) and r.dim() > 0:
+                        r = r + torch.randn_like(r) * overrot_sigma
+                        y = y + torch.randn_like(y) * overrot_sigma
+                        z = z + torch.randn_like(z) * overrot_sigma
+                    else:
+                        device = self.q_device.device
+                        r = r + torch.randn((), device=device) * overrot_sigma
+                        y = y + torch.randn((), device=device) * overrot_sigma
+                        z = z + torch.randn((), device=device) * overrot_sigma
+
                 tqf.rx(self.q_device,wires=w,params=r,static=self.static_mode,parent_graph=self.graph)
                 tqf.ry(self.q_device,wires=w,params=y,static=self.static_mode,parent_graph=self.graph)
                 tqf.rz(self.q_device,wires=w,params=z,static=self.static_mode,parent_graph=self.graph)
-            self.entangle_ring()
-            self.depolarize()
+
+            # inject single-qubit noise after rotation bundle
+            self._inject_single_qubit_noise(self.noise_cfg)
+            # entangle with possible 2q Pauli error
+            self._entangle_ring_with_noise(twoq_p)
+
         out = self.measure(self.q_device)
+        # readout error (flip signs in Z expectation with prob p)
+        out = self._apply_readout_error(out, float(self.noise_cfg.get('p_readout', 0.0)))
         return self.fc(out) if self.add_fc else out
 
-
 ##################################
-# MPS_VQC & TTN_VQC (inherit ring code but override entanglers)
+# MPS_VQC & TTN_VQC (inherit + reuse noise)
 ##################################
 class MPS_VQC(VQC):
     """Nearest‐neighbor chain entangler."""
@@ -134,31 +232,50 @@ class MPS_VQC(VQC):
         bsz = x.size(0)
         self.reset_quantum_device(bsz)
         self.encoder(self.q_device, x)
+
         use_batch = angles is not None
+        overrot_sigma = float(self.noise_cfg.get('overrot_sigma', 0.0))
+        twoq_p = float(self.noise_cfg.get('p_twopauli', 0.0))
+
         for k in range(self.n_qlayers):
             for w in range(self.n_wires):
                 if use_batch:
-                    r = angles[:, k, w, 0]
-                    y = angles[:, k, w, 1]
-                    z = angles[:, k, w, 2]
+                    r,y,z = angles[:,k,w,0], angles[:,k,w,1], angles[:,k,w,2]
                 else:
                     r, y, z = self.angles[k, w]
+
+                if overrot_sigma > 0:
+                    if isinstance(r, torch.Tensor) and r.dim() > 0:
+                        r = r + torch.randn_like(r) * overrot_sigma
+                        y = y + torch.randn_like(y) * overrot_sigma
+                        z = z + torch.randn_like(z) * overrot_sigma
+                    else:
+                        device = self.q_device.device
+                        r = r + torch.randn((), device=device) * overrot_sigma
+                        y = y + torch.randn((), device=device) * overrot_sigma
+                        z = z + torch.randn((), device=device) * overrot_sigma
+
                 tqf.rx(self.q_device, wires=w, params=r, static=self.static_mode, parent_graph=self.graph)
                 tqf.ry(self.q_device, wires=w, params=y, static=self.static_mode, parent_graph=self.graph)
                 tqf.rz(self.q_device, wires=w, params=z, static=self.static_mode, parent_graph=self.graph)
+
                 if w < self.n_wires - 1:
                     tqf.cnot(self.q_device, wires=[w, w+1], static=self.static_mode, parent_graph=self.graph)
-            self.depolarize()
+                    self._apply_two_qubit_pauli_after_cnot([w, w+1], twoq_p)
+
+            self._inject_single_qubit_noise(self.noise_cfg)
+
         out = self.measure(self.q_device)
+        out = self._apply_readout_error(out, float(self.noise_cfg.get('p_readout', 0.0)))
         return self.fc(out) if self.add_fc else out
-    
-    
+
 class TTN_VQC(VQC):
     """Binary‐tree entangler."""
-    def entangle_ttn(self):
+    def entangle_ttn_with_noise(self, twoq_p):
         half = self.n_wires // 2
         for i in range(half):
             tqf.cnot(self.q_device, wires=[i, i+half], static=self.static_mode, parent_graph=self.graph)
+            self._apply_two_qubit_pauli_after_cnot([i, i+half], twoq_p)
 
     @tq.static_support
     def forward(self, x, q_device, angles=None):
@@ -166,24 +283,39 @@ class TTN_VQC(VQC):
         bsz = x.size(0)
         self.reset_quantum_device(bsz)
         self.encoder(self.q_device, x)
+
         use_batch = angles is not None
+        overrot_sigma = float(self.noise_cfg.get('overrot_sigma', 0.0))
+        twoq_p = float(self.noise_cfg.get('p_twopauli', 0.0))
+
         for k in range(self.n_qlayers):
             for w in range(self.n_wires):
                 if use_batch:
-                    r = angles[:, k, w, 0]
-                    y = angles[:, k, w, 1]
-                    z = angles[:, k, w, 2]
+                    r,y,z = angles[:,k,w,0], angles[:,k,w,1], angles[:,k,w,2]
                 else:
                     r, y, z = self.angles[k, w]
+
+                if overrot_sigma > 0:
+                    if isinstance(r, torch.Tensor) and r.dim() > 0:
+                        r = r + torch.randn_like(r) * overrot_sigma
+                        y = y + torch.randn_like(y) * overrot_sigma
+                        z = z + torch.randn_like(z) * overrot_sigma
+                    else:
+                        device = self.q_device.device
+                        r = r + torch.randn((), device=device) * overrot_sigma
+                        y = y + torch.randn((), device=device) * overrot_sigma
+                        z = z + torch.randn((), device=device) * overrot_sigma
+
                 tqf.rx(self.q_device, wires=w, params=r, static=self.static_mode, parent_graph=self.graph)
                 tqf.ry(self.q_device, wires=w, params=y, static=self.static_mode, parent_graph=self.graph)
                 tqf.rz(self.q_device, wires=w, params=z, static=self.static_mode, parent_graph=self.graph)
-            self.depolarize()
-        self.entangle_ttn()
-        self.depolarize()
+
+            self._inject_single_qubit_noise(self.noise_cfg)
+            self.entangle_ttn_with_noise(twoq_p)
+
         out = self.measure(self.q_device)
+        out = self._apply_readout_error(out, float(self.noise_cfg.get('p_readout', 0.0)))
         return self.fc(out) if self.add_fc else out
-    
 
 ##################################
 # MetaTT Wrappers
@@ -220,7 +352,6 @@ class TTNParamVQC(nn.Module):
         bsz=x.size(0)
         ang = self.tt(x).reshape(bsz, self.vqc.n_qlayers, self.vqc.n_wires, 3)
         return self.vqc(x,q_device,angles=ang)
-    
 
 ##################################
 # Quantum-Dot DataLoader
@@ -239,43 +370,52 @@ def load_quantum_dot_data():
     X_test, y_test  = X[split:], y[split:]
     train_ds = TensorDataset(torch.from_numpy(X_train), torch.from_numpy(y_train))
     test_ds  = TensorDataset(torch.from_numpy(X_test),  torch.from_numpy(y_test))
-    
     return train_ds, test_ds
-
 
 ##################################
 # Training Script
 ##################################
 if __name__=="__main__":
     parser = argparse.ArgumentParser(
-        description='Training a hybrid quantum-classical model (MLP_VQC variants) for charge stability diagram classification of quantum dots with depolarizing noise simulation.'
+        description='Training a hybrid quantum-classical model (TensorHyper-VQC) with composable quantum noise.'
     )
     parser.add_argument('--save_path', metavar='DIR', default='models', help='Path to save the trained model')
-    parser.add_argument('--num_qubits', default=20, help='Number of qubits in the quantum circuit', type=int)
-    parser.add_argument('--batch_size', default=64, help='Batch size for training', type=int)
-    parser.add_argument('--num_epochs', default=21, help='Number of training epochs', type=int)
-    parser.add_argument('--depth_vqc', default=6, help='Depth (number of variational layers) of the VQC', type=int)
-    parser.add_argument('--lr', default=3e-2, help='Learning rate', type=float)
+    parser.add_argument('--num_qubits', default=12, type=int, help='Number of qubits in the quantum circuit')
+    parser.add_argument('--batch_size', default=64, type=int, help='Batch size for training')
+    parser.add_argument('--num_epochs', default=21, type=int, help='Number of training epochs')
+    parser.add_argument('--depth_vqc', default=6, type=int, help='Depth (number of variational layers) of the VQC')
+    parser.add_argument('--lr', default=3e-2, type=float, help='Learning rate')
     parser.add_argument('--test_kind', metavar='DIR', default='gen', help='Test type: "rep" for representation, "gen" for generalization')
-    parser.add_argument('--model_kind', metavar='DIR', default='ring', help='Model type: ring, mps, tree')
-    parser.add_argument('--noise_prob', default=0.000, help='noisy_error_rate', type=float)
-    parser.add_argument('--tt_input_dim', default=[5, 10, 5, 10], help='tensor-train input dimensions', type=list[int])
-    parser.add_argument('--tt_output_dim', default=[4, 2, 3, 9], help='tensor-train output dimensions', type=list[int])
-    parser.add_argument('--tt_ranks', default=[1, 2, 5, 2, 1], help='tensor-train output dimensions', type=list[int])
+    parser.add_argument('--model_kind', metavar='DIR', default='ring', choices=['ring','mps','tree'], help='Model type: ring, mps, tree')
+    parser.add_argument('--noise_prob', default=0.000, type=float, help='(legacy) single-prob depolarizing; kept for compatibility')
+
+    parser.add_argument('--tt_input_dim', type=parse_int_list, default="5,10,5,10", help='tensor-train input dimensions (comma list)')
+    parser.add_argument('--tt_output_dim', type=parse_int_list, default="4,2,3,9", help='tensor-train output dimensions (comma list)')
+    parser.add_argument('--tt_ranks', type=parse_int_list, default="1,2,2,2,1", help='tensor-train ranks (comma list)')
+
+    # NEW: Composable noise CLI
+    parser.add_argument('--noise_models', type=str, default='depol,dephase,readout',
+                        help='Comma-separated: depol,dephase,pauli,overrot,twopauli,readout,none')
+    parser.add_argument('--p_depol', type=float, default=0.000, help='Prob per single-qubit depolarizing')
+    parser.add_argument('--p_dephase', type=float, default=0.000, help='Prob per single-qubit dephasing (Z)')
+    parser.add_argument('--pauli_px', type=float, default=0.000, help='Pauli-X prob')
+    parser.add_argument('--pauli_py', type=float, default=0.000, help='Pauli-Y prob')
+    parser.add_argument('--pauli_pz', type=float, default=0.000, help='Pauli-Z prob')
+    parser.add_argument('--overrot_sigma', type=float, default=0.00, help='Std dev of coherent angle jitter (radians)')
+    parser.add_argument('--p_twopauli', type=float, default=0.000, help='Prob per CNOT to apply random 2-qubit Pauli')
+    parser.add_argument('--p_readout', type=float, default=0.00, help='Prob to flip Z expectation sign per qubit')
 
     args = parser.parse_args()
 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     train_ds, test_ds = load_quantum_dot_data()
-    train_loader = DataLoader(train_ds, batch_size=args.num_epochs, shuffle=True)
-    test_loader  = DataLoader(test_ds,  batch_size=args.num_epochs)
+    train_loader = DataLoader(train_ds, batch_size=args.batch_size, shuffle=True)
+    test_loader  = DataLoader(test_ds,  batch_size=args.batch_size)
     epochs = args.num_epochs
 
     # choose model: 'ring','mps','ttn'
-    mode = args.model_kind
     common = dict(
         input_dim=2500,
-        #tt_input_dims=[5, 10, 5, 10],
         tt_input_dims=args.tt_input_dim,
         tt_output_dims=args.tt_output_dim,
         tt_ranks=args.tt_ranks,
@@ -286,6 +426,7 @@ if __name__=="__main__":
         out_features=2,
         noise_prob=args.noise_prob
     )
+    mode = args.model_kind
     if mode=='ring':
         model = VQCParamVQC(**common).to(device)
     elif mode=='mps':
@@ -293,12 +434,18 @@ if __name__=="__main__":
     else:
         model = TTNParamVQC(**common).to(device)
 
+    # attach noise to the underlying VQC
+    noise_cfg, noise_models = build_noise_cfg(args)
+    model.vqc.noise_cfg = noise_cfg
+    print("Noise models:", ','.join(noise_models) if noise_models else 'none')
+    print("Noise cfg:", noise_cfg)
+
     print("Params:", sum(p.numel() for p in model.parameters()))
     criterion = nn.CrossEntropyLoss()
     optimizer = optim.Adam(model.parameters(), lr=args.lr)
     scheduler = optim.lr_scheduler.StepLR(optimizer, step_size=10, gamma=0.1)
 
-    for epoch in range(1, epochs):
+    for epoch in range(1, epochs+1):
         # ---- Training ----
         model.train()
         total_loss = 0.0
@@ -306,19 +453,19 @@ if __name__=="__main__":
         total_train = 0
 
         for X_batch, y_batch in train_loader:
-             X_batch, y_batch = X_batch.to(device), y_batch.to(device)
-             optimizer.zero_grad()
-             q_dev = tq.QuantumDevice(n_wires=args.num_qubits, bsz=X_batch.size(0)).to(device)
-             out = model(X_batch, q_dev)
-             loss = criterion(out, y_batch)
-             loss.backward()
-             optimizer.step()
+            X_batch, y_batch = X_batch.to(device), y_batch.to(device)
+            optimizer.zero_grad()
+            q_dev = tq.QuantumDevice(n_wires=args.num_qubits, bsz=X_batch.size(0)).to(device)
+            out = model(X_batch, q_dev)
+            loss = criterion(out, y_batch)
+            loss.backward()
+            optimizer.step()
 
-             # accumulate train loss & accuracy
-             total_loss += loss.item() * X_batch.size(0)
-             preds = out.argmax(dim=1)
-             correct_train += (preds == y_batch).sum().item()
-             total_train += X_batch.size(0)
+            # accumulate train loss & accuracy
+            total_loss += loss.item() * X_batch.size(0)
+            preds = out.argmax(dim=1)
+            correct_train += (preds == y_batch).sum().item()
+            total_train += X_batch.size(0)
 
         scheduler.step()
         train_loss = total_loss / len(train_ds)
@@ -329,7 +476,7 @@ if __name__=="__main__":
         total_test_loss = 0.0
         correct_test = 0
         total_test = 0
-         
+
         with torch.no_grad():
             for X_batch, y_batch in test_loader:
                 X_batch, y_batch = X_batch.to(device), y_batch.to(device)
